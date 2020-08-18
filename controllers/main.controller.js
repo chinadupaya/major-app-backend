@@ -206,6 +206,30 @@ const controller = {
             })
         })
     },
+    getServices: (req,res)=>{
+        repo.getServices()
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    getUserJobs:(req,res)=>{
+        repo.getUserJobs(req.params.userId)
+        .then((response)=>{
+            return res.status(200).json({
+                data:response
+            })
+        })
+    },
+    getUserServices:(req,res)=>{
+        repo.getUserServices(req.params.userId)
+        .then((response)=>{
+            return res.status(200).json({
+                data:response
+            })
+        })
+    },
     postJob: (req,res)=>{
         var data = req.body;
         var id = shortid.generate()
@@ -242,6 +266,40 @@ const controller = {
             })
         }
         
+    },
+    postService: (req,res)=>{
+        var data=req.body;
+        console.log(data);
+        var id=shortid.generate();
+        if(data.title && data.description && data.category && data.priceRange && data.location && 
+            data.latitude && data.longitude && data.userId && data.firstName && data.lastName && (data.userRating>=0)){
+            repo.postService(id,data.title, data.description, data.category, data.priceRange, data.location, 
+                data.latitude, data.longitude, data.userId, data.firstName, data.lastName, data.userRating)
+            .then((response)=>{
+                res.status(200).json({
+                    data:{
+                        id: id,
+                        title:data.title,
+                        description: data.description,
+                        category:data.category,
+                        price_range: data.priceRange,
+                        location: data.location,
+                        latitude:data.latitude,
+                        longitude:data.longitude,
+                        user_id: data.userId,
+                        first_name: data.firstName,
+                        last_name: data.lastName,
+                        user_rating: data.userRating
+                    }
+                })
+            })
+        }else{
+            res.status(404).json({
+                error:{
+                    message: "You're missing one or more fields"
+                }
+            })
+        }
     }
 
 }

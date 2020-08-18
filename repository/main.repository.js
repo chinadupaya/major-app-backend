@@ -74,12 +74,55 @@ const repository={
         const kvsTask = pipeline.exec();
         return Promise.all([dbTask, kvsTask]);
     },
+    postService: function(id, title, description, category, priceRange, location,
+        latitude, longitude, userId, firstName, lastName,userRating){
+        var dbTask = knex.raw('CALL create_service(?,?,?,?,?,?,?,?,?,?,?,?)',[
+            id, title, description, category, priceRange, location,
+            latitude, longitude, userId, firstName, lastName,userRating
+        ])
+        var redisObject={
+            id: id,
+            title:title,
+            description: description,
+            category:category,
+            price_range: priceRange,
+            location: location,
+            latitude:latitude,
+            longitude:longitude,
+            user_id: userId,
+            first_name: firstName,
+            last_name: lastName,
+            user_rating: userRating
+        }
+        const pipeline = redis.pipeline();
+        pipeline.hmset(`services:${id}`, redisObject)
+        const kvsTask = pipeline.exec();
+        return Promise.all([dbTask, kvsTask]);
+    },
     getJobs: function(){
         return knex.raw('CALL get_jobs()')
         .then((data)=>{
             return Promise.resolve(data[0][0])
         })
-    }
+    },
+    getServices: function(){
+        return knex.raw('CALL get_services()')
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    getUserJobs: function(userId){
+        return knex.raw('CALL get_user_jobs(?)',[userId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    getUserServices: function(userId){
+        return knex.raw('CALL get_user_services(?)',[userId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
 
 };
 module.exports = repository;

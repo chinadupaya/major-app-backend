@@ -65,6 +65,16 @@ BEGIN
    WHERE `id` = p_user_id;
 END;
 
+CREATE PROCEDURE `get_user_jobs`(p_user_id VARCHAR(255))
+BEGIN
+   SELECT * FROM `jobs` WHERE `user_id` = p_user_id;
+END ;
+
+CREATE PROCEDURE `get_user_services`(p_user_id VARCHAR(255))
+BEGIN
+   SELECT * FROM `services` WHERE `user_id` = p_user_id;
+END ;
+
 CREATE PROCEDURE `create_user`(
    p_id VARCHAR(255),
    p_email VARCHAR(255),
@@ -75,6 +85,27 @@ CREATE PROCEDURE `create_user`(
 BEGIN
    INSERT INTO `users` (`id`,`email`,`first_name`, `last_name`, `password`, `rating`, `is_worker`)
    VALUES(p_id, p_email, p_first_name,p_last_name,p_password, 0.0, 0);
+END;
+
+CREATE PROCEDURE `create_service`(
+   p_id VARCHAR(255),
+   p_title VARCHAR(255),
+   p_description TEXT,
+   p_category VARCHAR(255),
+   p_price_range DECIMAL(10,2),
+   p_location VARCHAR(255),
+   p_latitude DECIMAL(10,8),
+   p_longitude DECIMAL(11,8),
+   p_user_id VARCHAR(255),
+   p_first_name VARCHAR(255),
+   p_last_name VARCHAR(255),
+   p_user_rating DECIMAL(2,1)
+)
+BEGIN
+   INSERT INTO `services` (`id`, `title`,`description`,`category`,`price_range`,`location`,`latitude`,`longitude`,`user_id`,
+   `first_name`,`last_name`,`user_rating`,`create_date`,`update_date`)
+   VALUES (p_id,p_title,p_description,p_category,p_price_range,p_location,p_latitude,
+   p_longitude,p_user_id,p_first_name,p_last_name,p_user_rating, now(),now());
 END;
 
 CREATE PROCEDURE `create_job`(
@@ -95,6 +126,11 @@ BEGIN
    `first_name`,`last_name`,`user_rating`,`create_date`,`update_date`)
    VALUES ( p_id, p_title,p_description,p_category,p_location ,p_latitude,p_longitude,p_user_id,
    p_first_name,p_last_name,p_user_rating, now(),now());
+END;
+
+CREATE PROCEDURE `get_services`()
+BEGIN
+   SELECT * FROM `services`;
 END;
 
 CREATE PROCEDURE `get_jobs`()

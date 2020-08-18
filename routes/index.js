@@ -13,5 +13,9 @@ router.post('/users',controller.postUser);
 router.post('/login', controller.loginUser);
 router.post('/create-worker-profile', controller.postWorkerProfile)
 router.post('/post-job', controller.postJob)
+router.post('/post-service', controller.postService);
 router.get('/jobs', controller.getJobs);
+router.get('/services', controller.getServices);
+router.get('/users/:userId/services', controller.getUserServices);
+router.get('/users/:userId/jobs', controller.getUserJobs);
 module.exports = router;
