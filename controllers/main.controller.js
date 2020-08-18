@@ -2,9 +2,10 @@ const shortId = require('shortid');
 const repo = require('../repository/main.repository');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const shortid = require('shortid');
+const path = require('path');
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        console.log(__dirname)
         cb(null, __dirname + '/../public/images/')
     },
     filename: function (req, file, cb) {
@@ -26,6 +27,7 @@ var uploadMultiple = multer({
     }
 }).array("listingImages", 4)
 
+var cpUpload = multer({ storage: storage }).fields([{ name: 'nbiClearance', maxCount: 1 }, { name: 'govId', maxCount: 1 },{ name: 'signature', maxCount: 1 }])
 // Check File Type
 function checkFileType(file, cb) {
     console.log("check file type")
@@ -172,7 +174,76 @@ const controller = {
                 }
             });
         }
+    },
+    postWorkerProfile: (req,res)=>{
+        cpUpload(req,res,(err)=>{
+            userId=req.body.userId
+            if(req.files){
+                var newId=shortid.generate();
+                //console.log(req.files['nbiClearance'][0].filename,req.files['govId'][0].filename,req.files['signature'][0].filename);
+                repo.postWorkerProfile(newId, userId,req.files['nbiClearance'][0].filename,req.files['govId'][0].filename,req.files['signature'][0].filename)
+                .then((response=>{
+                    console.log(response);
+                    return res.status(200).json({
+                        data:{
+                            id: newId,
+                            user_id: userId, 
+                            nbiClearance:req.files['nbiClearance'][0].filename, 
+                            govId:req.files['govId'][0].filename,
+                            signature:req.files['signature'][0].filename
+                        }
+                    })
+                }))
+                
+            }
+        })
+    },
+    getJobs: (req,res)=>{
+        repo.getJobs()
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    postJob: (req,res)=>{
+        var data = req.body;
+        var id = shortid.generate()
+        //console.log(data);
+        if(data.title && data.description && data.category && data.location && data.latitude && 
+            data.longitude && data.userId && data.firstName && data.lastName && (data.userRating>=0)){
+            repo.postJob(id, data.title, data.description, data.category, data.location, data.latitude, 
+                data.longitude, data.userId, data.firstName, data.lastName, data.userRating)
+            .then((response)=>{
+                return res.status(200).json({
+                    data:{
+                        id:id,
+                        title: data.title,
+                        description: data.description,
+                        category:data.category,
+                        location: data.location,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        user_id: data.userId,
+                        first_name:data.firstName,
+                        last_name: data.lastName,
+                        user_rating: data.userRating
+                    }
+                })
+            })
+            .catch((err)=>{
+                console.log(err);
+            })
+        }else{
+            return res.status(404).json({
+                error:{
+                    message: "You're missing one or more fields"
+                }
+            })
+        }
+        
     }
+
 }
 
 module.exports = controller;

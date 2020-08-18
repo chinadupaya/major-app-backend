@@ -51,6 +51,34 @@ const repository={
         .then((data)=>{
             return Promise.resolve(data);
         })
+    },
+    postJob: function(id, title, description, category, location, latitude, longitude, userId, firstName, lastName, userRating){
+        var dbTask = knex.raw('CALL create_job(?,?,?,?,?,?,?,?,?,?,?)',[
+            id, title, description, category, location, latitude, longitude, userId, firstName, lastName, userRating
+        ])
+        var redisObject = {
+            id: id,
+            title: title,
+            description:description, 
+            category:category, 
+            location:location, 
+            latitude:latitude, 
+            longitude:longitude, 
+            user_id:userId, 
+            first_name:firstName, 
+            last_name:lastName, 
+            user_rating:userRating
+        }
+        const pipeline = redis.pipeline();
+        pipeline.hmset(`jobs:${id}`, redisObject)
+        const kvsTask = pipeline.exec();
+        return Promise.all([dbTask, kvsTask]);
+    },
+    getJobs: function(){
+        return knex.raw('CALL get_jobs()')
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
     }
 
 };
