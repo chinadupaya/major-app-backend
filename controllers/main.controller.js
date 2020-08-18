@@ -178,10 +178,14 @@ const controller = {
     postWorkerProfile: (req,res)=>{
         cpUpload(req,res,(err)=>{
             userId=req.body.userId
-            if(req.files){
+            if(req.files){ //check per file
                 var newId=shortid.generate();
                 //console.log(req.files['nbiClearance'][0].filename,req.files['govId'][0].filename,req.files['signature'][0].filename);
-                repo.postWorkerProfile(newId, userId,req.files['nbiClearance'][0].filename,req.files['govId'][0].filename,req.files['signature'][0].filename)
+                repo.postWorkerProfile(
+                    newId, 
+                    userId,
+                    req.files['nbiClearance'][0].filename,req.files['govId'][0].filename,
+                    req.files['signature'][0].filename)
                 .then((response=>{
                     console.log(response);
                     return res.status(200).json({
@@ -208,6 +212,22 @@ const controller = {
     },
     getServices: (req,res)=>{
         repo.getServices()
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    getService: (req,res)=>{
+        repo.getService(req.params.serviceId)
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    getJob: (req,res)=>{
+        repo.getJob(req.params.jobId)
         .then((response)=>{
             return res.status(200).json({
                 data: response

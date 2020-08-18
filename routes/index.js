@@ -18,4 +18,6 @@ router.get('/jobs', controller.getJobs);
 router.get('/services', controller.getServices);
 router.get('/users/:userId/services', controller.getUserServices);
 router.get('/users/:userId/jobs', controller.getUserJobs);
+router.get('/jobs/:jobId', controller.getJob);
+router.get('/services/:serviceId', controller.getService);
 module.exports = router;

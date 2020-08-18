@@ -105,6 +105,23 @@ const repository={
             return Promise.resolve(data[0][0])
         })
     },
+    getJob: function(jobId){
+        const pipeline = redis.pipeline();
+        pipeline.hgetall(`jobs:${jobId}`);
+        return pipeline.exec()
+        .then((data)=>{
+            //console.log(data);
+            return data[0][1]
+        })
+    },
+    getService: function(serviceId){
+        const pipeline = redis.pipeline();
+        pipeline.hgetall(`services:${serviceId}`);
+        return pipeline.exec()
+        .then((data)=>{
+            return data[0][1]
+        })
+    },
     getServices: function(){
         return knex.raw('CALL get_services()')
         .then((data)=>{
