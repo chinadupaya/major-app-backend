@@ -52,15 +52,26 @@ const repository={
             return Promise.resolve(data);
         })
     },
-    postJob: function(id, title, description, category, location, latitude, longitude, userId, firstName, lastName, userRating){
-        var dbTask = knex.raw('CALL create_job(?,?,?,?,?,?,?,?,?,?,?)',[
-            id, title, description, category, location, latitude, longitude, userId, firstName, lastName, userRating
+    postBooking: function(id, clientId, workerId, serviceId, jobId, price){
+        return knex.raw('CALL create_booking(?,?,?,?,?,?)',[id, clientId, workerId, serviceId, jobId, price])
+        .then((data)=>{
+            return Promise.resolve(data);
+        })
+    },
+    postJob: function(id, title, description, categoryId, categoryName,subcategoryId, subcategoryName, location, latitude, 
+        longitude, userId, firstName, lastName, userRating){
+        var dbTask = knex.raw('CALL create_job(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[
+            id, title, description, categoryId, categoryName,subcategoryId, subcategoryName, location, latitude, 
+            longitude, userId, firstName, lastName, userRating
         ])
         var redisObject = {
             id: id,
             title: title,
             description:description, 
-            category:category, 
+            category_id:categoryId,
+            category_name:categoryName,
+            subcategory_id:subcategoryId,
+            subcategory_name:subcategoryName, 
             location:location, 
             latitude:latitude, 
             longitude:longitude, 
@@ -74,17 +85,20 @@ const repository={
         const kvsTask = pipeline.exec();
         return Promise.all([dbTask, kvsTask]);
     },
-    postService: function(id, title, description, category, priceRange, location,
-        latitude, longitude, userId, firstName, lastName,userRating){
-        var dbTask = knex.raw('CALL create_service(?,?,?,?,?,?,?,?,?,?,?,?)',[
-            id, title, description, category, priceRange, location,
+    postService: function(id, title, description, categoryId, categoryName,subcategoryId, subcategoryName,
+        priceRange, location,latitude, longitude, userId, firstName, lastName,userRating){
+        var dbTask = knex.raw('CALL create_service(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[
+            id, title, description, categoryId, categoryName,subcategoryId, subcategoryName, priceRange, location,
             latitude, longitude, userId, firstName, lastName,userRating
         ])
         var redisObject={
             id: id,
             title:title,
             description: description,
-            category:category,
+            category_id:categoryId,
+            category_name:categoryName,
+            subcategory_id:subcategoryId,
+            subcategory_name:subcategoryName,
             price_range: priceRange,
             location: location,
             latitude:latitude,
@@ -99,8 +113,8 @@ const repository={
         const kvsTask = pipeline.exec();
         return Promise.all([dbTask, kvsTask]);
     },
-    getJobs: function(){
-        return knex.raw('CALL get_jobs()')
+    getJobs: function(distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum){
+        return knex.raw('CALL get_jobs(?,?,?,?,?,?,?,?)',[distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum])
         .then((data)=>{
             return Promise.resolve(data[0][0])
         })
@@ -112,6 +126,19 @@ const repository={
         .then((data)=>{
             //console.log(data);
             return data[0][1]
+        })
+    },
+    getJobBookings: function(jobId){
+        return knex.raw('CALL get_job_bookings(?)',[jobId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    getServiceBookings: function(serviceId){
+        console.log(serviceId);
+        return knex.raw('CALL get_service_bookings(?)',[serviceId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
         })
     },
     getService: function(serviceId){
@@ -140,6 +167,36 @@ const repository={
             return Promise.resolve(data[0][0])
         })
     },
+    getCategories: function(){
+        return knex.raw('CALL get_categories()')
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    getSubcategories: function(categoryId){
+        return knex.raw('CALL get_subcategories(?)',[categoryId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    getJobApplications: function(workerId){
+        return knex.raw('CALL get_job_applications(?)',[workerId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    getServiceRequests: function(clientId){
+        return knex.raw('CALL get_service_requests(?)',[clientId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    putBookingStatus: function(bookingId, status){
+        return knex.raw('CALL update_booking_status(?,?)',[bookingId, status])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    }
 
 };
 module.exports = repository;

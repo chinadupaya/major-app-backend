@@ -203,7 +203,23 @@ const controller = {
         })
     },
     getJobs: (req,res)=>{
-        repo.getJobs()
+        var distance = req.query.distance;
+        var title = req.query.title;
+        var categoryId = req.query.categoryId;
+        var subcategoryId = req.query.subcategoryId;
+        var latitude = req.query.latitude;
+        var longitude = req.query.longitude;
+        var sortBy = req.query.sortBy;
+        var pageNum = req.query.pageNum;
+        if(distance == undefined){distance = 10};
+        if(title == undefined){title = ""};
+        if(categoryId == undefined){categoryId = ""};
+        if(subcategoryId == undefined){subcategoryId = ""};
+        if(longitude == undefined){longitude = 0};
+        if(sortBy == undefined){sortBy = "date_ascending"};
+        if(pageNum == undefined){pageNum = 1};
+        if(latitude == undefined){latitude = 0};
+        repo.getJobs(distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum)
         .then((response)=>{
             return res.status(200).json({
                 data: response
@@ -234,6 +250,23 @@ const controller = {
             })
         })
     },
+    getJobBookings:(req,res)=>{
+        repo.getJobBookings(req.params.jobId)
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    getServiceBookings:(req,res)=>{
+        console.log(req.params.serviceId)
+        repo.getServiceBookings(req.params.serviceId)
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
     getUserJobs:(req,res)=>{
         repo.getUserJobs(req.params.userId)
         .then((response)=>{
@@ -250,13 +283,31 @@ const controller = {
             })
         })
     },
+    getJobApplications:(req,res)=>{
+        repo.getJobApplications(req.params.userId)
+        .then((response)=>{
+            return res.status(200).json({
+                data:response
+            })
+        })
+    },
+    getServiceRequests:(req,res)=>{
+        repo.getServiceRequests(req.params.userId)
+        .then((response)=>{
+            return res.status(200).json({
+                data:response
+            })
+        })
+    },
     postJob: (req,res)=>{
         var data = req.body;
         var id = shortid.generate()
         //console.log(data);
-        if(data.title && data.description && data.category && data.location && data.latitude && 
+        if(data.title && data.description && data.categoryId&& data.categoryName&& 
+            data.subcategoryId&& data.subcategoryName && data.location && data.latitude && 
             data.longitude && data.userId && data.firstName && data.lastName && (data.userRating>=0)){
-            repo.postJob(id, data.title, data.description, data.category, data.location, data.latitude, 
+            repo.postJob(id, data.title, data.description, data.categoryId,data.categoryName,
+                data.subcategoryId,data.subcategoryName,data.location, data.latitude, 
                 data.longitude, data.userId, data.firstName, data.lastName, data.userRating)
             .then((response)=>{
                 return res.status(200).json({
@@ -264,7 +315,10 @@ const controller = {
                         id:id,
                         title: data.title,
                         description: data.description,
-                        category:data.category,
+                        category_id:data.categoryId,
+                        category_name:data.categoryName,
+                        subcategory_id:data.subcategoryId,
+                        subcategory_name:data.subcategoryName,
                         location: data.location,
                         latitude: data.latitude,
                         longitude: data.longitude,
@@ -291,9 +345,11 @@ const controller = {
         var data=req.body;
         console.log(data);
         var id=shortid.generate();
-        if(data.title && data.description && data.category && data.priceRange && data.location && 
+        if(data.title && data.description && data.categoryId && data.categoryName&& data.subcategoryId && 
+            data.subcategoryName && data.priceRange && data.location && 
             data.latitude && data.longitude && data.userId && data.firstName && data.lastName && (data.userRating>=0)){
-            repo.postService(id,data.title, data.description, data.category, data.priceRange, data.location, 
+            repo.postService(id,data.title, data.description, data.categoryId,data.categoryName,
+                data.subcategoryId,data.subcategoryName, data.priceRange, data.location, 
                 data.latitude, data.longitude, data.userId, data.firstName, data.lastName, data.userRating)
             .then((response)=>{
                 res.status(200).json({
@@ -301,7 +357,10 @@ const controller = {
                         id: id,
                         title:data.title,
                         description: data.description,
-                        category:data.category,
+                        category_id:data.categoryId,
+                        category_name:data.categoryName,
+                        subcategory_id:data.subcategoryId,
+                        subcategory_name:data.subcategoryName,
                         price_range: data.priceRange,
                         location: data.location,
                         latitude:data.latitude,
@@ -320,7 +379,48 @@ const controller = {
                 }
             })
         }
-    }
+    },
+    postBooking: (req,res)=>{
+        data = req.body;
+        var id = shortid.generate();
+        repo.postBooking(id, data.clientId, data.workerId, data.serviceId, data.jobId, data.price)
+        .then((response)=>{
+            return res.status(200).json({
+                data:{
+                    id: id,
+                    client_id: data.clientId,
+                    worker_id: data.workerId,
+                    service_id: data.serviceId,
+                    job_id: data.jobId,
+                    price: data.price
+                }
+            })
+        })
+    },
+    putBookingStatus: (req,res)=>{
+        repo.putBookingStatus(req.body.bookingId, req.body.status)
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    getCategories: (req,res)=>{
+        repo.getCategories()
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
+    getSubcategories: (req,res)=>{
+        repo.getSubcategories(req.params.categoryId)
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    },
 
 }
 
