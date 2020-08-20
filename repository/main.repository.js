@@ -149,8 +149,8 @@ const repository={
             return data[0][1]
         })
     },
-    getServices: function(){
-        return knex.raw('CALL get_services()')
+    getServices: function(distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum){
+        return knex.raw('CALL get_services(?,?,?,?,?,?,?,?)',[distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum])
         .then((data)=>{
             return Promise.resolve(data[0][0])
         })

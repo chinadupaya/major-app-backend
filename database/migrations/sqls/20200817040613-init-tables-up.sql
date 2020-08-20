@@ -210,9 +210,30 @@ BEGIN
    p_first_name,p_last_name,p_user_rating, now(),now());
 END;
 
-CREATE PROCEDURE `get_services`()
+CREATE PROCEDURE `get_services`(
+   IN p_distance INT,
+   IN p_title VARCHAR(255),
+   IN p_category_id VARCHAR(255),
+   IN p_subcategory_id VARCHAR(255),
+   IN p_latitude DECIMAL(10,8),
+   IN p_longitude DECIMAL(11,8),
+   IN sort_by VARCHAR (100),
+   IN page_num INT
+)
 BEGIN
-   SELECT * FROM `services`;
+   DECLARE ls_page_num INT;
+   SET ls_page_num = 10*(page_num-1);
+   SELECT * FROM `services`
+   WHERE
+   if(p_category_id is null or length(trim(p_category_id)) = 0, true, category_id = p_category_id ) AND
+   if(p_subcategory_id is null or length(trim(p_subcategory_id)) = 0, true, subcategory_id = p_subcategory_id ) AND
+   title LIKE CONCAT("%",p_title,"%")
+   ORDER BY
+   CASE WHEN sort_by='date_ascending' THEN create_date END,
+   CASE WHEN sort_by='date_descending' THEN create_date END DESC,
+   CASE WHEN sort_by='price_ascending' THEN price_range END,
+   CASE WHEN sort_by='price_descending' THEN price_range END DESC
+   LIMIT ls_page_num,10;
 END;
 
 CREATE PROCEDURE `get_jobs`(
@@ -226,7 +247,17 @@ CREATE PROCEDURE `get_jobs`(
    IN page_num INT
 )
 BEGIN
-   SELECT * FROM `jobs`;
+   DECLARE ls_page_num INT;
+   SET ls_page_num = 10*(page_num-1);
+   SELECT * FROM `jobs`
+   WHERE
+   if(p_category_id is null or length(trim(p_category_id)) = 0, true, category_id = p_category_id ) AND
+   if(p_subcategory_id is null or length(trim(p_subcategory_id)) = 0, true, subcategory_id = p_subcategory_id ) AND
+   title LIKE CONCAT("%",p_title,"%")
+   ORDER BY
+   CASE WHEN sort_by='date_ascending' THEN create_date END,
+   CASE WHEN sort_by='date_descending' THEN create_date END DESC
+   LIMIT ls_page_num,10;
 END;
 
 CREATE PROCEDURE `get_job_bookings`(IN p_job_id VARCHAR(255))
@@ -291,3 +322,85 @@ CREATE PROCEDURE `is_unique_email`(IN p_email VARCHAR(255))
 BEGIN
 	SELECT * FROM `users` WHERE `email` = p_email; 
 END;
+
+INSERT INTO `jobs` (`id`, `title`,`description`,`category_id`,`category_name`,`subcategory_id`,`subcategory_name`,
+`location`,`latitude`,`longitude`,`user_id`,`first_name`,`last_name`,`user_rating`,`create_date`,`update_date`)
+VALUES
+("job-aa","titleaa","description","a","House","a","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-ab","titleab","description","a","House","b","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-ac","titleac","description","a","House","c","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-ba","titleba","description","b","House","a","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-bb","titlebb","description","b","House","b","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-bc","titlebc","description","b","House","c","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-ca","titleca","description","c","House","a","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-cb","titlecb","description","c","House","b","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-cc","titlecc","description","c","House","c","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-da","titleda","description","d","House","a","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-db","titledb","description","d","House","b","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-dc","titledc","description","d","House","c","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-ea","titleea","description","e","House","a","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-eb","titleeb","description","e","House","b","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-ec","titleec","description","e","House","c","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-fa","titlefa","description","f","House","","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-fb","titlefb","description","f","House","","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("job-fc","titlefc","description","f","House","","Pest Control",
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate())
+;
+
+INSERT INTO `services` (`id`, `title`,`description`,`category_id`,`category_name`,`subcategory_id`,`subcategory_name`,`price_range`,`location`,`latitude`,`longitude`,`user_id`,
+   `first_name`,`last_name`,`user_rating`,`create_date`,`update_date`)
+VALUES
+("service-aa","titleaa","description","a","House","a","Pest Control", 10,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-ab","titleab","description","a","House","b","Pest Control", 20,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-ac","titleac","description","a","House","c","Pest Control", 30,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-ba","titleba","description","b","House","a","Pest Control", 40,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-bb","titlebb","description","b","House","b","Pest Control", 50,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-bc","titlebc","description","b","House","c","Pest Control", 60,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-ca","titleca","description","c","House","a","Pest Control", 70,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-cb","titlecb","description","c","House","b","Pest Control", 80,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-cc","titlecc","description","c","House","c","Pest Control", 90,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-da","titleda","description","d","House","a","Pest Control", 100,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-db","titledb","description","d","House","b","Pest Control", 10,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-dc","titledc","description","d","House","c","Pest Control", 20,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-ea","titleea","description","e","House","a","Pest Control", 30,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-eb","titleeb","description","e","House","b","Pest Control", 40,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-ec","titleec","description","e","House","c","Pest Control", 50,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-fa","titlefa","description","f","House","","Pest Control", 60,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-fb","titlefb","description","f","House","","Pest Control", 70,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate()),
+("service-fc","titlefc","description","f","House","","Pest Control", 80,
+"Quezon City, Philippines",14.676208,121.043861, "a","first","last",0,curdate(),curdate())
+;
