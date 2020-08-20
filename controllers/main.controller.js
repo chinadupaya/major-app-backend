@@ -211,7 +211,7 @@ const controller = {
         var longitude = req.query.longitude;
         var sortBy = req.query.sortBy;
         var pageNum = req.query.pageNum;
-        if(distance == undefined){distance = 10};
+        if(distance == undefined){distance = -1};
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
@@ -219,7 +219,7 @@ const controller = {
         if(longitude == undefined){longitude = 0};
         if(sortBy == undefined){sortBy = "date_ascending"};
         if(pageNum == undefined){pageNum = 1};
-        
+        console.log(latitude, longitude);
         repo.getJobs(distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum)
         .then((response)=>{
             return res.status(200).json({
@@ -236,7 +236,7 @@ const controller = {
         var longitude = req.query.longitude;
         var sortBy = req.query.sortBy;
         var pageNum = req.query.pageNum;
-        if(distance == undefined){distance = 10};
+        if(distance == undefined){distance = -1};
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
