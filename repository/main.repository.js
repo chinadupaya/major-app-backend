@@ -196,6 +196,18 @@ const repository={
         .then((data)=>{
             return Promise.resolve(data[0][0])
         })
+    },
+    postReview: function(id, reviewerId, firstName, lastName,rating,content,reviewedId){
+        return knex.raw('CALL create_review(?,?,?,?,?,?,?)',[id, reviewerId, firstName, lastName,rating,content,reviewedId])
+        .then((data)=>{
+            return Promise.resolve(data);
+        })
+    },
+    getUserReviews: function(userId){
+        return knex.raw('CALL get_user_reviews(?)',[userId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
     }
 
 };

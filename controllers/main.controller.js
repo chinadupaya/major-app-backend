@@ -215,8 +215,8 @@ const controller = {
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
-        if(latitude == undefined){latitude = 0};
-        if(longitude == undefined){longitude = 0};
+        if(latitude == undefined){latitude = 0.0};
+        if(longitude == undefined){longitude = 0.0};
         if(sortBy == undefined){sortBy = "date_ascending"};
         if(pageNum == undefined){pageNum = 1};
         console.log(latitude, longitude);
@@ -398,8 +398,28 @@ const controller = {
             })
         }
     },
+    postReview: (req,res)=>{
+        data=req.body;
+        console.log(data);
+        var id = shortid.generate();
+        repo.postReview(id, data.reviewerId, data.firstName, data.lastName,data.rating,data.content,data.reviewedId)
+        .then((response)=>{
+            return res.status(200).json({
+                data:{
+                    id:id,
+                    reviewerId:data.reviewerId,
+                    firstName:data.firstName,
+                    lastName:data.lastName,
+                    rating:data.rating,
+                    content:data.content,
+                    reviewedId:data.reviewedId
+                }
+            })
+        })
+    },
     postBooking: (req,res)=>{
         data = req.body;
+        console.log(data);
         var id = shortid.generate();
         repo.postBooking(id, data.clientId, data.workerId, data.serviceId, data.jobId, data.price)
         .then((response)=>{
@@ -439,6 +459,14 @@ const controller = {
             })
         })
     },
+    getUserReviews: (req,res)=>{
+        repo.getUserReviews(req.params.userId)
+        .then((response)=>{
+            return res.status(200).json({
+                data: response
+            })
+        })
+    }
 
 }
 

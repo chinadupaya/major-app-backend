@@ -10,6 +10,16 @@ CREATE TABLE `users` (
    PRIMARY KEY(`id`)
 );
 
+CREATE TABLE `reviews`(
+   `id` VARCHAR(255),
+   `reviewer_id` VARCHAR(255),
+   `first_name` VARCHAR(255),
+   `last_name` VARCHAR(255),
+   `rating` DECIMAL(2,1),
+   `content` TEXT,
+   `reviewed_id` VARCHAR(255)
+);
+
 CREATE TABLE `bookings`(
    `id` VARCHAR(255),
    `client_id` VARCHAR(255),
@@ -329,8 +339,29 @@ BEGIN
    UPDATE `users`
    SET `is_worker`=1
    WHERE `id` = p_user_id;
-
 END;
+
+CREATE PROCEDURE `create_review`(
+   IN p_id VARCHAR(255),
+   IN p_reviewer_id VARCHAR(255),
+   IN p_first_name VARCHAR(255),
+   IN p_last_name VARCHAR(255),
+   IN p_rating DECIMAL(2,1),
+   IN p_content TEXT,
+   IN p_reviewed_id VARCHAR(255)
+)
+BEGIN
+   INSERT INTO `reviews` (`id`,`reviewer_id`,`first_name`,`last_name`,`rating`,`content`,`reviewed_id`)
+   VALUES (p_id,p_reviewer_id,p_first_name,p_last_name,p_rating,p_content,p_reviewed_id);
+END;
+
+CREATE PROCEDURE `get_user_reviews`(
+   IN p_reviewed_id VARCHAR(255)
+)
+BEGIN
+   SELECT * FROM `reviews` WHERE `reviewed_id` = p_reviewed_id;
+END;
+
 
 CREATE PROCEDURE `is_unique_email`(IN p_email VARCHAR(255))
 BEGIN
