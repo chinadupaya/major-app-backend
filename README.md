@@ -1,4 +1,4 @@
-# Internship major application backend
+# major application backend
 Before running 
 ```
 npm install
