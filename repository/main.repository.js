@@ -114,9 +114,15 @@ const repository={
         return Promise.all([dbTask, kvsTask]);
     },
     getJobs: function(distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum){
-        return knex.raw('CALL get_jobs(?,?,?,?,?,?,?,?)',[distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum])
+        var input = [distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum];
+        return knex.raw('CALL get_jobs(?,?,?,?,?,?,?,?)',input)
         .then((data)=>{
             return Promise.resolve(data[0][0])
+        })
+        .catch((err)=>{
+            console.log(err);
+            console.log(input);
+            throw err;
         })
     },
     getJob: function(jobId){

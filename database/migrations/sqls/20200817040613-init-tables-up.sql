@@ -276,7 +276,7 @@ BEGIN
    WHERE
    if(p_category_id is null or length(trim(p_category_id)) = 0, true, e.category_id = p_category_id ) AND
    if(p_subcategory_id is null or length(trim(p_subcategory_id)) = 0, true, e.subcategory_id = p_subcategory_id ) AND
-   if(p_distance is null or p_distance = -1, true, e.distance <= p_distance) AND
+   if(p_distance is null or p_distance = -1 or p_latitude is null or p_longitude is null, true, e.distance <= p_distance) AND
    e.title LIKE CONCAT("%",p_title,"%")
    ORDER BY
    CASE WHEN sort_by='date_ascending' THEN e.create_date END,

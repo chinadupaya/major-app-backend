@@ -12,21 +12,6 @@ var storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
     }
 })
-var uploadSingle = multer({
-    storage: storage,
-    limits: { fileSize: 1000000 },
-    fileFilter: function (req, file, cb) {
-        checkFileType(file, cb)
-    }
-}).single('imageupload')
-var uploadMultiple = multer({
-    storage: storage,
-    limits: { fileSize: 1000000 },
-    fileFilter: function (req, file, cb) {
-        checkFileType(file, cb)
-    }
-}).array("listingImages", 4)
-
 var cpUpload = multer({ storage: storage }).fields([{ name: 'nbiClearance', maxCount: 1 }, { name: 'govId', maxCount: 1 },{ name: 'signature', maxCount: 1 }])
 // Check File Type
 function checkFileType(file, cb) {
@@ -203,20 +188,25 @@ const controller = {
         })
     },
     getJobs: (req,res)=>{
-        var distance = req.query.distance;
-        var title = req.query.title;
-        var categoryId = req.query.categoryId;
-        var subcategoryId = req.query.subcategoryId;
-        var latitude = req.query.latitude;
-        var longitude = req.query.longitude;
-        var sortBy = req.query.sortBy;
-        var pageNum = req.query.pageNum;
-        if(distance == undefined){distance = -1};
+        var rCopy = Object.assign({},req.query)
+        console.log(rCopy);
+        var distance = rCopy.distance;
+        var title = rCopy.title;
+        var categoryId = rCopy.categoryId;
+        var subcategoryId = rCopy.subcategoryId;
+        var latitude = rCopy.latitude;
+        var longitude = rCopy.longitude;
+        var sortBy = rCopy.sortBy;
+        var pageNum = rCopy.pageNum;
+        console.log(latitude, longitude);
+        if(distance == undefined){
+            distance = -1
+        };
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
-        if(latitude == undefined){latitude = 1};
-        if(longitude == undefined){longitude = 1};
+        if(latitude == undefined){latitude = null};
+        if(longitude == undefined){longitude = null};
         if(sortBy == undefined){sortBy = "date_ascending"};
         if(pageNum == undefined){pageNum = 1};
         console.log(latitude, longitude);
@@ -224,6 +214,13 @@ const controller = {
         .then((response)=>{
             return res.status(200).json({
                 data: response
+            })
+        })
+        .catch((err)=>{
+            return res.status(500).json({
+                error:{
+                    message: err
+                }
             })
         })
     },
@@ -241,8 +238,8 @@ const controller = {
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
-        if(latitude == undefined){latitude = 1};
-        if(longitude == undefined){longitude = 1};
+        if(latitude == undefined){latitude = null};
+        if(longitude == undefined){longitude = null};
         if(sortBy == undefined){sortBy = "date_ascending"};
         if(pageNum == undefined){pageNum = 1};
         console.log(latitude, longitude);
@@ -401,7 +398,7 @@ const controller = {
     },
     postReview: (req,res)=>{
         data=req.body;
-        console.log(data);
+        //console.log(data);
         var id = shortid.generate();
         repo.postReview(id, data.reviewerId, data.firstName, data.lastName,data.rating,data.content,data.reviewedId)
         .then((response)=>{
@@ -420,7 +417,7 @@ const controller = {
     },
     postBooking: (req,res)=>{
         data = req.body;
-        console.log(data);
+        //console.log(data);
         var id = shortid.generate();
         repo.postBooking(id, data.clientId, data.workerId, data.serviceId, data.jobId, data.price)
         .then((response)=>{
