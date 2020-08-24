@@ -215,8 +215,8 @@ const controller = {
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
-        if(latitude == undefined){latitude = 0.0};
-        if(longitude == undefined){longitude = 0.0};
+        if(latitude == undefined){latitude = 1};
+        if(longitude == undefined){longitude = 1};
         if(sortBy == undefined){sortBy = "date_ascending"};
         if(pageNum == undefined){pageNum = 1};
         console.log(latitude, longitude);
@@ -236,15 +236,16 @@ const controller = {
         var longitude = req.query.longitude;
         var sortBy = req.query.sortBy;
         var pageNum = req.query.pageNum;
+        console.log(latitude, longitude);
         if(distance == undefined){distance = -1};
         if(title == undefined){title = ""};
         if(categoryId == undefined){categoryId = ""};
         if(subcategoryId == undefined){subcategoryId = ""};
-        if(latitude == undefined){latitude = 0};
-        if(longitude == undefined){longitude = 0};
+        if(latitude == undefined){latitude = 1};
+        if(longitude == undefined){longitude = 1};
         if(sortBy == undefined){sortBy = "date_ascending"};
         if(pageNum == undefined){pageNum = 1};
-        
+        console.log(latitude, longitude);
         repo.getServices(distance,title,categoryId, subcategoryId,latitude,longitude,sortBy,pageNum)
         .then((response)=>{
             return res.status(200).json({
