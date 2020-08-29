@@ -53,39 +53,6 @@ CREATE TABLE `subcategories`(
    PRIMARY KEY(`id`, `category_id`)
 );
 
-INSERT INTO `categories`(`id`, `name`)
-VALUES 
-("a","Home"),
-("b","Events"),
-("c","Health & Fitness"),
-("d","Automotive & Transport"),
-("e","Office"),
-("f","Others");
-
-INSERT INTO `subcategories`(`id`, `name`,`category_id`,`category_name`)
-VALUES
-("a","Pest Control Services", "a", "Home"),
-("b","Cleaning Services", "a", "Home"),
-("c","Plumbing Services", "a", "Home"),
-("d","Electrical Services", "a", "Home"),
-("e","Aircon Services", "a", "Home"),
-("f","Interior Design", "a", "Home"),
-("g","Home Repair & Maintenance", "a", "Home"),
-("h","Home Renovation & Improvement", "a", "Home"),
-("i","Movers & Trucking Services", "a", "Home"),
-("j","Laundry & Dry Cleaning", "a", "Home"),
-("k","Food, Beverage, & Catering Services", "a", "Home"),
-("l","Appliance Services & Repair", "a", "Home"),
-("a","Food, Beverage, & Catering Services","b", "Events"),
-("b","Entertainment Events","b", "Events"),
-("c","Weddings","b", "Events"),
-("a","Packed Meals","c","Health & Fitness"),
-("b","Grocery","c","Health & Fitness"),
-("a","Movers & Trucking Services","d","Automotive & Transport"),
-("b","Office Movers & Relocators","d","Automotive & Transport"),
-("a","Pest Control Services", "e","Office"),
-("b","Office Maintenance & Cleaning", "e","Office");
-
 CREATE TABLE `services`(
    `id` VARCHAR(255),
    `title` VARCHAR(255),
@@ -124,6 +91,60 @@ CREATE TABLE `jobs`(
    `update_date` DATE,
    PRIMARY KEY(`id`)
 );
+
+CREATE TABLE `rooms` (
+    `id` VARCHAR(255),
+    `user_id` VARCHAR(255),
+    `chat_with` VARCHAR(255),
+    `room_name` VARCHAR(255),
+    `created_at` DATETIME,
+    PRIMARY KEY(`id`, `user_id`)
+);
+
+CREATE TABLE `messages` (
+    `id` VARCHAR(255),
+    `room_id` VARCHAR(255),
+    `type` VARCHAR(255),
+    `content` TEXT,
+    `sent_by` VARCHAR(255),
+    `created_at` DATETIME,
+    PRIMARY KEY(`id`)
+);
+
+CREATE PROCEDURE `check_room_exists`(
+   IN p_user_id VARCHAR(255),
+   IN p_chat_with VARCHAR(255)
+)
+BEGIN
+   SELECT * FROM `rooms` WHERE `user_id` = p_user_id AND `chat_with` = p_chat_with;
+END;
+
+CREATE PROCEDURE `get_user_rooms`(IN p_user_id VARCHAR(255))
+BEGIN
+    SELECT * FROM `rooms` WHERE `user_id` = p_user_id;
+END ;
+
+CREATE PROCEDURE `get_room_messages` (IN p_room_id VARCHAR(255))
+BEGIN
+    SELECT * FROM `messages` WHERE `room_id` = p_room_id
+    ORDER BY `created_at`;
+
+END;
+
+CREATE PROCEDURE `create_room`(IN p_id VARCHAR(255), IN p_user_id VARCHAR(255),p_chat_with VARCHAR(255),IN p_room_name VARCHAR(255))
+BEGIN
+    INSERT INTO `rooms`(`id`,`user_id`, `chat_with`, `room_name`, `created_at`) VALUES (p_id,p_user_id, p_chat_with, p_room_name, now());
+END;
+
+CREATE PROCEDURE `create_message`(IN p_id VARCHAR(255), 
+    IN p_room_id VARCHAR(255),
+    IN p_sent_by VARCHAR(255), 
+    IN p_content TEXT,
+    IN p_type VARCHAR(255))
+BEGIN
+    INSERT INTO `messages`(`id`, `room_id`,`type`, `content`, `sent_by`, `created_at`)
+    VALUES (p_id, p_room_id, p_type, p_content, p_sent_by, now());
+END;
 
 CREATE PROCEDURE `get_users`()
 BEGIN
@@ -168,7 +189,7 @@ CREATE PROCEDURE `create_user`(
 )
 BEGIN
    INSERT INTO `users` (`id`,`email`,`first_name`, `last_name`, `password`, `rating`, `is_worker`)
-   VALUES(p_id, p_email, p_first_name,p_last_name,p_password, 0.0, 0);
+   VALUES(p_id, p_email, p_first_name,p_last_name,p_password, 5.0, 0);
 END;
 
 CREATE PROCEDURE `create_service`(
@@ -247,7 +268,7 @@ BEGIN
    WHERE
    if(p_category_id is null or length(trim(p_category_id)) = 0, true, e.category_id = p_category_id ) AND
    if(p_subcategory_id is null or length(trim(p_subcategory_id)) = 0, true, e.subcategory_id = p_subcategory_id ) AND
-   if(p_distance is null or p_distance = -1, true, e.distance <= p_distance) AND
+   if(p_distance is null or p_distance = -1  or p_latitude is null or p_longitude is null, true, e.distance <= p_distance) AND
    e.title LIKE CONCAT("%",p_title,"%")
    ORDER BY
    CASE WHEN sort_by='date_ascending' THEN e.create_date END,
@@ -359,7 +380,8 @@ CREATE PROCEDURE `get_user_reviews`(
    IN p_reviewed_id VARCHAR(255)
 )
 BEGIN
-   SELECT * FROM `reviews` WHERE `reviewed_id` = p_reviewed_id;
+   SELECT *, AVG(`rating`) AS `average` FROM `reviews` WHERE `reviewed_id` = p_reviewed_id
+   GROUP BY `rating`,`id`,`reviewer_id`,`first_name`,`last_name`,`content`,`reviewed_id`;
 END;
 
 
@@ -368,84 +390,105 @@ BEGIN
 	SELECT * FROM `users` WHERE `email` = p_email; 
 END;
 
+INSERT INTO `categories`(`id`, `name`)
+VALUES 
+("a","Home"),
+("b","Events"),
+("c","Health & Fitness"),
+("d","Automotive & Transport"),
+("e","Office"),
+("f","Construction"),
+("g","Others");
+
+INSERT INTO `subcategories`(`id`, `name`,`category_id`,`category_name`)
+VALUES
+("a","Pest Control Services", "a", "Home"),
+("b","Cleaning Services", "a", "Home"),
+("c","Plumbing Services", "a", "Home"),
+("d","Electrical Services", "a", "Home"),
+("e","Aircon Services", "a", "Home"),
+("f","Interior Design", "a", "Home"),
+("g","Home Repair & Maintenance", "a", "Home"),
+("h","Home Renovation & Improvement", "a", "Home"),
+("i","Movers & Trucking Services", "a", "Home"),
+("j","Laundry & Dry Cleaning", "a", "Home"),
+("k","Food, Beverage, & Catering Services", "a", "Home"),
+("l","Appliance Services & Repair", "a", "Home"),
+("a","Food, Beverage, & Catering Services","b", "Events"),
+("b","Entertainment Events","b", "Events"),
+("c","Weddings","b", "Events"),
+("a","Packed Meals","c","Health & Fitness"),
+("b","Grocery","c","Health & Fitness"),
+("a","Movers & Trucking Services","d","Automotive & Transport"),
+("b","Office Movers & Relocators","d","Automotive & Transport"),
+("a","Pest Control Services", "e","Office"),
+("b","Office Maintenance & Cleaning", "e","Office"),
+("a","Carpentry", "f","Carpentry"),
+("b","Plumbing", "f","Carpentry");
+
+
 INSERT INTO `jobs` (`id`, `title`,`description`,`category_id`,`category_name`,`subcategory_id`,`subcategory_name`,
 `location`,`position`,`user_id`,`first_name`,`last_name`,`user_rating`,`create_date`,`update_date`)
 VALUES
-("job-aa","titleaa","description","a","House","a","Pest Control",
+("job-aa","Pest Control Request","description","a","House","a","Pest Control",
 "Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-ab","titleab","description","a","House","b","Pest Control",
+("job-ab","Cleaning Request","description","a","House","b","Cleaning",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.045861 14.676208)'), "a","first","last",0,curdate(),curdate()),
+("job-ac","Plumbing Request","description","a","House","c","Plumbing",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.046861 14.676208)'),"a","first","last",0,curdate(),curdate()),
+("job-ba","Food Event Request","description","b","Events","a","Food",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.041861 14.676208)'),"a","first","last",0,curdate(),curdate()),
+("job-bb","Entertainment Event Request","description","b","Events","b","Entertainment",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.046861 14.676208)'),"a","first","last",0,curdate(),curdate()),
+("job-bc","Weddings Events Request","description","b","Events","c","Weddings",
 "Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-ac","titleac","description","a","House","c","Pest Control",
+("job-ca","Packed meals Request","description","c","Health & Fitness","a","Packed meals",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.671208)'), "a","first","last",0,curdate(),curdate()),
+("job-cb","Grocery Request","description","c","Health & Fitness","b","Grocery",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.675208)'), "a","first","last",0,curdate(),curdate()),
+("job-da","Movers Request","description","d","Automotive & Transport","a","Movers",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.678208)'), "a","first","last",0,curdate(),curdate()),
+("job-db","Office moving Request","description","d","Automotive & Transport","b","Offive Movers",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.671208)'),"a","first","last",0,curdate(),curdate()),
+("job-ea","Office pest control Request","description","e","Office","a","Pest Control",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.679208)'),"a","first","last",0,curdate(),curdate()),
+("job-eb","Office maintenance Request","description","e","Office","b","Office Maintenance",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043361 14.676208)'), "a","first","last",0,curdate(),curdate()),
+("job-fa","Carpentry Request","description","f","Construction","a","Carpentry",
 "Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-ba","titleba","description","b","House","a","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-bb","titlebb","description","b","House","b","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-bc","titlebc","description","b","House","c","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-ca","titleca","description","c","House","a","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-cb","titlecb","description","c","House","b","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-cc","titlecc","description","c","House","c","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-da","titleda","description","d","House","a","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-db","titledb","description","d","House","b","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-dc","titledc","description","d","House","c","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-ea","titleea","description","e","House","a","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-eb","titleeb","description","e","House","b","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("job-ec","titleec","description","e","House","c","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-fa","titlefa","description","f","House","","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-fb","titlefb","description","f","House","","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("job-fc","titlefc","description","f","House","","Pest Control",
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate())
+("job-fb","Plumbing Request","description","f","Construction","b","Plumbing",
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043761 14.676208)'),"a","first","last",0,curdate(),curdate())
 ;
 
 INSERT INTO `services` (`id`, `title`,`description`,`category_id`,`category_name`,`subcategory_id`,`subcategory_name`,`price_range`,`location`,`position`,`user_id`,
    `first_name`,`last_name`,`user_rating`,`create_date`,`update_date`)
 VALUES
-("service-aa","titleaa","description","a","House","a","Pest Control", 10,
+("service-aa","Pest Control Service","description","a","House","a","Pest Control", 900.00,
 "Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-ab","titleab","description","a","House","b","Pest Control", 20,
+("service-ab","Cleaning Service","description","a","House","b","Cleaning",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.044873 14.676208)'), "a","first","last",0,curdate(),curdate()),
+("service-ac","Plumbing Service","description","a","House","c","Plumbing",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.045885 14.676208)'),"a","first","last",0,curdate(),curdate()),
+("service-ba","Food Event Service","description","b","Events","a","Food",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.046897 14.676208)'),"a","first","last",0,curdate(),curdate()),
+("service-bb","Entertainment Event Service","description","b","Events","b","Entertainment",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.048869 14.676208)'),"a","first","last",0,curdate(),curdate()),
+("service-bc","Weddings Events Service","description","b","Events","c","Weddings",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676216)'), "a","first","last",0,curdate(),curdate()),
+("service-ca","Packed meals Service","description","c","Health & Fitness","a","Packed meals",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.636225)'), "a","first","last",0,curdate(),curdate()),
+("service-cb","Grocery Service","description","c","Health & Fitness","b","Grocery",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.656234)'), "a","first","last",0,curdate(),curdate()),
+("service-da","Movers Service","description","d","Automotive & Transport","a","Movers",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.696243)'), "a","first","last",0,curdate(),curdate()),
+("service-db","Office moving Service","description","d","Automotive & Transport","b","Offive Movers",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676252)'),"a","first","last",0,curdate(),curdate()),
+("service-ea","Office pest control Service","description","e","Office","a","Pest Control",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.042861 14.676261)'),"a","first","last",0,curdate(),curdate()),
+("service-eb","Office maintenance Service","description","e","Office","b","Office Maintenance",900.00,
 "Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-ac","titleac","description","a","House","c","Pest Control", 30,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-ba","titleba","description","b","House","a","Pest Control", 40,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-bb","titlebb","description","b","House","b","Pest Control", 50,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-bc","titlebc","description","b","House","c","Pest Control", 60,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-ca","titleca","description","c","House","a","Pest Control", 70,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("service-cb","titlecb","description","c","House","b","Pest Control", 80,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-cc","titlecc","description","c","House","c","Pest Control", 90,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("service-da","titleda","description","d","House","a","Pest Control", 100,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("service-db","titledb","description","d","House","b","Pest Control", 10,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-dc","titledc","description","d","House","c","Pest Control", 20,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-ea","titleea","description","e","House","a","Pest Control", 30,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("service-eb","titleeb","description","e","House","b","Pest Control", 40,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-ec","titleec","description","e","House","c","Pest Control", 50,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'),"a","first","last",0,curdate(),curdate()),
-("service-fa","titlefa","description","f","House","","Pest Control", 60,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-fb","titlefb","description","f","House","","Pest Control", 70,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate()),
-("service-fc","titlefc","description","f","House","","Pest Control", 80,
-"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043861 14.676208)'), "a","first","last",0,curdate(),curdate())
+("service-fa","Carpentry Service","description","f","Construction","a","Carpentry",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043761 14.674208)'),"a","first","last",0,curdate(),curdate()),
+("service-fb","Plumbing Service","description","f","Construction","b","Plumbing",900.00,
+"Quezon City, Philippines",ST_GeomFromText( 'POINT(121.043361 14.672208)'),"a","first","last",0,curdate(),curdate())
 ;

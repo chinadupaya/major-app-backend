@@ -214,6 +214,41 @@ const repository={
         .then((data)=>{
             return Promise.resolve(data[0][0])
         })
+    },
+    getUserRooms: function(userId){
+        return knex.raw('CALL get_user_rooms(?)',[userId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0]);
+        })
+    },
+    postRoom: function(roomId, userIdOne, userIdTwo, nameOne, nameTwo){
+        console.log(roomId, userIdOne, userIdTwo, nameOne, nameTwo);
+        const dbTaskOne =  knex.raw('CALL create_room(?,?,?,?)',[
+            roomId, userIdOne, userIdTwo, nameTwo
+        ]);
+        const dbTaskTwo =  knex.raw('CALL create_room(?,?,?,?)',[
+            roomId, userIdTwo, userIdOne, nameOne
+        ])
+
+        return Promise.all([dbTaskOne, dbTaskTwo]);
+    },
+    getMessages: function(roomId){
+        return knex.raw('CALL get_room_messages(?)',[roomId])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
+    },
+    postMessage: function(id, roomId, type, sentBy,content){
+        return knex.raw('CALL create_message(?,?,?,?,?)',[id,roomId, sentBy,content, type])
+        .then((data)=>{
+            return Promise.resolve(data);
+        })
+    },
+    checkRoomExists: function(userId, chatWith){
+        return knex.raw('CALL check_room_exists(?,?)',[userId, chatWith])
+        .then((data)=>{
+            return Promise.resolve(data[0][0])
+        })
     }
 
 };

@@ -4,15 +4,27 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var repo = require('./repository/main.repository');
 
-var indexRouter = require('./routes/index');
-var cors = require('cors');  
 var app = express();
 const config = {
   name: 'major-app-backend',
   port: 3000,
   host: '0.0.0.0'
 }
+var server = app.listen(config.port, config.host, (e)=> {
+  if(e) {
+      throw new Error('Internal Server Error');
+  }
+})
+const Socket = require('./socket');
+var socket = Socket(server);
+
+var controller = require('./controllers/main.controller')(repo, socket);
+
+var indexRouter = require('./routes/index')(controller);
+var cors = require('cors');  
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -31,6 +43,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
 
 app.use('/', indexRouter);
 
@@ -51,9 +65,6 @@ app.use(function(err, req, res, next) {
 });
 
 
-app.listen(config.port, config.host, (e)=> {
-  if(e) {
-      throw new Error('Internal Server Error');
-  }
-})
+
+
 module.exports = app;
